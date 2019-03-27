@@ -1,5 +1,8 @@
 {
   "name": "marvelRatings",
-  "integrations": {},
-  "type": "angular"
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular",
+  "id": "bb670c3f"
 }
