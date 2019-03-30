@@ -1,0 +1,37 @@
+<ion-header>
+    <ion-toolbar>
+      <!-- <ion-buttons slot="start">
+        <a href="sms:?&body=Check out my Marvel ratings">Share</a>
+      </ion-buttons> -->
+      <ion-buttons slot="start" (click)="share()">
+        Share
+      </ion-buttons>
+      <ion-title>MCU Ratings</ion-title>
+      <!-- <ion-buttons slot="end" (click)="toggleSort()">
+        Toggle
+      </ion-buttons> -->
+      <ion-buttons slot="end" (click)="reset()">
+        Reset
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content>
+    <ion-list>
+      <!-- <ion-reorder-group (ionItemReorder)="reorderItems($event)" [disabled]="!sortToggle"> -->
+      <ion-reorder-group (ionItemReorder)="reorderItems($event)" disabled=false>
+        <ion-item *ngFor="let movie of movies">
+          <!-- <span *ngIf="movie.diff">{{movie.diff}}</span>
+          <ion-icon name="arrow-up" *ngIf="movie.to < movie.from"></ion-icon>
+          <ion-icon name="arrow-down" *ngIf="movie.to > movie.from"></ion-icon> -->
+          <!-- <img src="http://image.tmdb.org/t/p/w92{{movie.poster_path}}"> -->
+          <ion-label>
+            {{movie.title}}
+          </ion-label>
+          <!-- <ion-reorder slot="end" *ngIf="sortToggle" [ngClass]="{'toggleOn': sortToggle}"></ion-reorder> -->
+          <!-- <ion-reorder slot="end" *ngIf="sortToggle"></ion-reorder> -->
+          <ion-reorder slot="end"></ion-reorder>
+        </ion-item>
+      </ion-reorder-group>
+    </ion-list>
+  </ion-content>

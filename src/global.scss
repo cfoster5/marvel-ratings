@@ -9,3 +9,11 @@
 @import '~@ionic/angular/css/text-alignment.css';
 @import '~@ionic/angular/css/text-transformation.css';
 @import '~@ionic/angular/css/flex-utils.css';
+
+.alertBtn {
+  color: black !important;
+}
+
+.alertBtn.danger {
+  color: rgb(236, 29, 35) !important;
+}
