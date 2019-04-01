@@ -178,7 +178,7 @@ export class HomePage {
 
     const alert = await this.alertCont.create({
       header: 'Reset?',
-      message: 'Would you like to reset your ratings to chronological order?',
+      message: 'Would you like to reset your ratings to release order?',
       buttons: [{
         text: 'Cancel',
         role: 'cancel',
