@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { MovieDBService } from '../movie-db.service';
-import { AlertController } from '@ionic/angular';
+import { AlertController, ActionSheetController } from '@ionic/angular';
+import { ClipboardService } from 'ngx-clipboard'
+
 
 @Component({
   selector: 'app-home',
@@ -12,10 +14,14 @@ export class HomePage {
   movies: any;
   initMovies: any;
   storedRankings: string;
+  isAndroid: boolean = false;
 
-  constructor(private movie: MovieDBService, private alertCont: AlertController) {
+  constructor(private movie: MovieDBService, private alertCont: AlertController, private actionCont: ActionSheetController, private clipboard: ClipboardService) {
     this.storedRankings = localStorage.getItem("array");
     console.log(JSON.parse(this.storedRankings));
+    if (document.querySelector(".md")) {
+      this.isAndroid = true;
+    }
   }
 
   ngOnInit() {
@@ -108,7 +114,8 @@ export class HomePage {
   //   this.sortToggle = !this.sortToggle;
   // }
 
-  share() {
+  async share() {
+
     let textBody: string = `Here are my rankings for the MCU:%0D%0A`;
     for (let i = 0; i < this.movies.length; i++) {
       const element = this.movies[i];
@@ -117,7 +124,53 @@ export class HomePage {
       console.log(textBody)
     }
     textBody += `%0D%0A%0D%0AMake your rankings at marvelratings.firebaseapp.com`
-    window.open(`sms:?&body=${textBody}`, '_parent');
+    // window.open(`sms:?&body=${textBody}`, '_parent');
+
+    let buttons = [{
+      text: 'Text',
+      // icon: 'logo-twitter',
+      handler: () => {
+        window.open(`sms:?&body=${textBody}`, '_parent');
+      }
+    }, {
+      text: 'Copy',
+      // icon: 'logo-twitter',
+      handler: () => {
+        console.log('Share clicked');
+        this.clipboard.copyFromContent(textBody.replace(/%0D%0A/g, "\n"))
+      }
+    }, {
+      text: 'Twitter',
+      // icon: 'logo-twitter',
+      handler: () => {
+        console.log('Share clicked');
+        window.open(`https://twitter.com/intent/tweet?text=${textBody}`, '_parent');
+      }
+    }, {
+      text: 'Facebook',
+      // icon: 'arrow-dropright-circle',
+      handler: () => {
+        console.log('Play clicked');
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=https://marvelratings.firebaseapp.com&quote=${textBody}`, '_parent');
+      }
+    }, {
+      text: 'Cancel',
+      // icon: 'close',
+      role: 'cancel',
+      handler: () => {
+        console.log('Cancel clicked');
+      }
+    }]
+
+    if (this.isAndroid) {
+      buttons.shift();
+    }
+
+    const actionSheet = await this.actionCont.create({
+      // header: 'Platforms',
+      buttons: buttons
+    });
+    await actionSheet.present();
   }
 
   async resetPrompt() {
