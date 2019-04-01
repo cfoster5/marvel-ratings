@@ -11,10 +11,11 @@ export class HomePage {
 
   movies: any;
   initMovies: any;
-  // sortToggle: boolean = false;
+  storedRankings: string;
 
   constructor(private movie: MovieDBService, private alertCont: AlertController) {
-    console.log(JSON.parse(localStorage.getItem("array")));
+    this.storedRankings = localStorage.getItem("array");
+    console.log(JSON.parse(this.storedRankings));
   }
 
   ngOnInit() {
@@ -22,28 +23,26 @@ export class HomePage {
       console.log(data)
       // console.log(data['total_pages'])
 
-      let storedRankings = localStorage.getItem("array");
-      // If movie exists that was not ranked before
-      if (!storedRankings || data['total_results'].length > JSON.parse(storedRankings).length) {
-        if (data['total_pages'] > 1 ) {
+      if (data['total_pages'] > 1 ) {
+        this.initMovies = [];
+        if (!this.storedRankings || data['total_results'].length > JSON.parse(this.storedRankings).length) {
           this.movies = [];
-          this.initMovies = [];
-          this.pushMovies(data); // Pushes 1st page results before looping over next pages
-          for (let i = 2; i <= data['total_pages']; i++) {
-            this.movie.getByKeywordIDChronoNextPage(i).subscribe(data => {
-              console.log(data)
-              this.pushMovies(data);
-            })
-          }
         }
-        if (data['total_pages'] == 1) {
-          this.movies = data['results']
-          this.initMovies = data['results']
+        else {
+          this.movies = JSON.parse(localStorage.getItem("array"));
+        }
+        this.pushMovies(data); // Pushes 1st page results before looping over next pages
+        for (let i = 2; i <= data['total_pages']; i++) {
+          this.movie.getByKeywordIDChronoNextPage(i).subscribe(data => {
+            console.log(data)
+            this.pushMovies(data);
+          })
         }
       }
-      else {
-        this.movies = JSON.parse(localStorage.getItem("array"));
-      }
+      // Not needed as API returns > 1 page
+      // if (data['total_pages'] == 1) {
+      //   this.initMovies = data['results']
+      // }
 
     })
   }
@@ -57,8 +56,15 @@ export class HomePage {
         console.log(data)
       })
 
-      this.movies.push(element)
       this.initMovies.push(element);
+      
+      if (!this.storedRankings || data['total_results'].length > JSON.parse(this.storedRankings).length) {
+        this.movies.push(element)
+      }
+      else {
+        this.movies = JSON.parse(localStorage.getItem("array"));
+      }
+
     }
   }
 
@@ -103,43 +109,67 @@ export class HomePage {
   // }
 
   share() {
-    let textBody: string = '';
+    let textBody: string = `Here are my rankings for the MCU:%0D%0A`;
     for (let i = 0; i < this.movies.length; i++) {
       const element = this.movies[i];
       i + 1 != this.movies.length ? textBody += `${i + 1}. ${element.title}%0D%0A` : textBody += `${i + 1}. ${element.title}`
       // textBody += `${i + 1}. ${element.title}%0D%0A`
       console.log(textBody)
     }
+    textBody += `%0D%0A%0D%0AMake your rankings at marvelratings.firebaseapp.com`
     window.open(`sms:?&body=${textBody}`, '_parent');
   }
 
-  async reset() {
+  async resetPrompt() {
     // this.movies = this.initMovies;
 
-      const alert = await this.alertCont.create({
-        header: 'Reset?',
-        message: 'Would you like to reset your ratings to chronological order?',
-        buttons: [
-          {
-            text: 'Cancel',
-            role: 'cancel',
-            cssClass: 'alertBtn',
-            handler: (blah) => {
-              console.log('Confirm Cancel: blah');
-            }
-          }, {
-            text: 'Reset',
-            cssClass: 'alertBtn danger',
-            handler: () => {
-              console.log('Confirm Okay');
-            }
-          }
-        ]
-      });
-  
-      await alert.present();
+    const alert = await this.alertCont.create({
+      header: 'Reset?',
+      message: 'Would you like to reset your ratings to chronological order?',
+      buttons: [{
+        text: 'Cancel',
+        role: 'cancel',
+        cssClass: 'alertBtn',
+        handler: (blah) => {
+          // console.log('Confirm Cancel: blah');
+        }
+      }, {
+        text: 'Reset',
+        cssClass: 'alertBtn danger',
+        handler: () => {
+          // console.log('Confirm Okay');
+          this.reset();
+        }
+      }]
+    });
 
-    
+    await alert.present();
+  }
+
+  reset() {
+    localStorage.removeItem("array")
+    this.storedRankings = null;
+
+    this.movie.getByKeywordIDChrono().subscribe(data => {
+      console.log(data)
+      // console.log(data['total_pages'])
+      if (data['total_pages'] > 1 ) {
+        this.initMovies = [];
+        this.movies = [];
+        this.pushMovies(data); // Pushes 1st page results before looping over next pages
+        for (let i = 2; i <= data['total_pages']; i++) {
+          this.movie.getByKeywordIDChronoNextPage(i).subscribe(data => {
+            console.log(data)
+            this.pushMovies(data);
+          })
+        }
+      }
+      // Not needed as API returns > 1 page
+      // if (data['total_pages'] == 1) {
+      //   this.initMovies = data['results']
+      // }
+    })
+
   }
 
 }
