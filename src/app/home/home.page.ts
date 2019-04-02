@@ -3,6 +3,12 @@ import { MovieDBService } from '../movie-db.service';
 import { AlertController, ActionSheetController } from '@ionic/angular';
 import { ClipboardService } from 'ngx-clipboard'
 
+interface movieDBObj {
+  page: number,
+  results: object[],
+  total_pages: number,
+  total_results: number
+}
 
 @Component({
   selector: 'app-home',
@@ -25,22 +31,25 @@ export class HomePage {
   }
 
   ngOnInit() {
-    this.movie.getByKeywordIDChrono().subscribe(data => {
+    this.movie.getByKeywordIDChrono().subscribe((data: movieDBObj) => {
       console.log(data)
       // console.log(data['total_pages'])
 
-      if (data['total_pages'] > 1 ) {
+      if (data.total_pages > 1) {
         this.initMovies = [];
-        if (!this.storedRankings || data['total_results'].length > JSON.parse(this.storedRankings).length) {
+        // If no storedRankings or if API brings back new items compared to storedRankings, clear movies array
+        if (!this.storedRankings || data.total_results > JSON.parse(this.storedRankings).length) {
           this.movies = [];
         }
         else {
           this.movies = JSON.parse(localStorage.getItem("array"));
         }
-        this.pushMovies(data); // Pushes 1st page results before looping over next pages
-        for (let i = 2; i <= data['total_pages']; i++) {
-          this.movie.getByKeywordIDChronoNextPage(i).subscribe(data => {
+        // Pushes 1st page results before looping over next pages
+        this.pushMovies(data);
+        for (let i = 2; i <= data.total_pages; i++) {
+          this.movie.getByKeywordIDChronoNextPage(i).subscribe((data: movieDBObj) => {
             console.log(data)
+            // Pass object from each additional page to pushMovies()
             this.pushMovies(data);
           })
         }
@@ -54,17 +63,16 @@ export class HomePage {
   }
 
   pushMovies(data) {
+    // Loop over each object in results array
     for (let i = 0; i < data['results'].length; i++) {
       const element = data['results'][i];
       // console.log(element)
 
-      this.movie.getMovieByID(element.id).subscribe(data => {
-        console.log(data)
-      })
-
-      this.initMovies.push(element);
+      this.initMovies.push(element); // Push movies after first page to array
       
-      if (!this.storedRankings || data['total_results'].length > JSON.parse(this.storedRankings).length) {
+      // If no storedRankings or if API brings back new items compared to storedRankings, push movie to array
+      if (!this.storedRankings || data['total_results'] > JSON.parse(this.storedRankings).length) {
+        console.log("new item", element)
         this.movies.push(element)
       }
       else {
